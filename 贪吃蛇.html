@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../jquery-1.11.1.js"></script>
+</head>
+<style>
+
+    div {
+        width: 18px;
+        height: 18px;
+        border: 1px solid white;
+        float: left;
+
+    }
+
+
+    .out {
+        background: #ffdc4c;
+    }
+
+    .in {
+        background: white;
+
+    }
+
+    .snake {
+        background: yellowgreen;
+        border-radius: 9px;
+    }
+
+    .food {
+        background: red;
+    }
+</style>
+<body>
+<div class="box" style="width: 300px;height:300px">
+
+</div>
+</body>
+</html>
+<script>
+    $(function () {
+        //食物出现的数组
+        var foodArr = new Array();
+        //蛇身体出现的位置数组
+        var snakeArr = new Array();
+        map(15, "out", "in");
+
+        function map(num, outStyle, inStyle) {
+            for (var i = 1; i <= num * num; i++) {
+                if (i <= num || i > num * (num - 1)) {
+                    $("<div class=" + outStyle + ">" + "" + "</div> ").appendTo($(".box"));
+                } else if (i % 15 === 0 || i % 15 === 1) {
+                    $("<div class=" + outStyle + ">" + "" + "</div> ").appendTo($(".box"));
+                } else {
+                    $("<div class=" + inStyle + ">" + "" + "</div> ").appendTo($(".box"));
+                    foodArr.push(i - 1);
+                }
+
+            }
+
+        }
+
+        //创建蛇的对象，因为蛇可以绑定多个属性，并且一直在堆内存中间存在
+        var snake = new Object();
+        snake.timer = null;
+        //蛇初始移动方向
+        snake.direction = "right";
+        //蛇第一次出现的位置
+        snakeArr = [17];
+        //将该位置换成蛇的样式
+        $(".box").children().eq(snakeArr[0]).removeClass().addClass("snake");
+        //食物数组中拍出蛇出现的位置
+        foodArr.splice(foodArr.indexOf(snakeArr[0]), 1);
+
+        //随机食物出现的位置
+        function randomXY() {
+            var x = parseInt(Math.random() * foodArr.length)
+            return foodArr[x];
+        }
+
+        //创建食物方法
+        function food() {
+            var f = randomXY();
+            $(".box").children().eq(f).removeClass().addClass("food");
+        }
+
+        food();
+
+        //蛇走一步方法
+        function move(direction) {
+            var num = 0;
+            switch (direction) {
+                case "left":
+                    num = -1;
+                    break;
+                case "right":
+                    num = 1;
+                    break;
+                case "up":
+                    num = -15;
+                    break;
+                case "down":
+                    num = 15;
+                    break;
+            }
+            //获取蛇头下一次出现位置
+            var nextStep = snakeArr[snakeArr.length - 1] + num;
+            //查看下一步样式
+            var nextStepStyle = $(".box").children().eq(nextStep).attr("class");
+            if (nextStepStyle === "out" || nextStepStyle === "snake") {
+                alert("Game Over");
+                clearInterval(snake.timer);
+                return;
+            } else if (nextStepStyle === "food") {
+                $(".box").children().eq(nextStep).removeClass().addClass("snake");
+                snakeArr.push(nextStep);
+                foodArr.splice(foodArr.indexOf(nextStep),1);
+                food();
+                return;
+            }
+            //改变这个位置的样式
+            $(".box").children().eq(nextStep).removeClass().addClass("snake");
+            snakeArr.push(nextStep);
+            foodArr.splice(foodArr.indexOf(nextStep), 1);
+            //蛇尾走过的位置变成原色
+            var lastStep = snakeArr[0];
+            $(".box").children().eq(lastStep).removeClass().addClass("in");
+            //剔除蛇尾
+            snakeArr.splice(snakeArr.indexOf(lastStep), 1);
+            //将此位置添加到食物出现的位置中，因为之前排除了
+            foodArr.push(lastStep);
+        }
+
+        function auto() {
+            snake.timer = setInterval(function () {
+                move(snake.direction);
+            }, 200)
+        }
+
+        auto();
+        //按键移动方法
+        $(window).keydown(function (e) {
+            switch (e.keyCode) {
+                case 37:
+                    if (snake.direction != "right") {
+                        snake.direction = "left";
+                    }
+                    break;
+                case 38:
+                    if (snake.direction != "down") {
+                        snake.direction = "up";
+                    }
+                    break;
+                case 39:
+                    if (snake.direction != "left") {
+                        snake.direction = "right";
+                    }
+                    break;
+                case 40:
+                    if (snake.direction != "up") {
+                        snake.direction = "down";
+                    }
+                    break;
+            }
+        })
+
+    })
+</script>
